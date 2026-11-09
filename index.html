@@ -100,7 +100,7 @@ a{color:#65e6a0;overflow-wrap:anywhere}
 </section>
 </main>
 <script>
-const €=n=>Number(n).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+const euro=n=>Number(n).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
 let data=JSON.parse(localStorage.getItem("dealpilot-data")||'{"capital":50,"deals":[]}');
 let current=null;
 function persist(){localStorage.setItem("dealpilot-data",JSON.stringify(data));render()}
@@ -108,13 +108,13 @@ function num(id){return Math.max(0,Number(document.getElementById(id).value)||0)
 function render(){
 let invested=data.deals.reduce((s,d)=>s+d.buy,0);
 document.getElementById("capital").value=data.capital;
-document.getElementById("startView").textContent=€(data.capital);
-document.getElementById("invested").textContent=€(invested);
-document.getElementById("available").textContent=€(data.capital-invested);
+document.getElementById("startView").textContent=euro(data.capital);
+document.getElementById("invested").textContent=euro(invested);
+document.getElementById("available").textContent=euro(data.capital-invested);
 document.getElementById("count").textContent=data.deals.length;
 document.getElementById("deals").innerHTML=data.deals.length?data.deals.map((d,i)=>`
-<div class="deal"><b>${esc(d.name)}</b> <span class="${d.profit>=10&&d.margin>=30?'green':d.profit>=5?'yellow':'red'}">● ${€(d.profit)}</span>
-<div class="muted">${esc(d.category)} · Einkauf ${€(d.buy)} · Verkauf ${€(d.sell)} · Marge ${d.margin.toFixed(1)}%</div>
+<div class="deal"><b>${esc(d.name)}</b> <span class="${d.profit>=10&&d.margin>=30?'green':d.profit>=5?'yellow':'red'}">● ${euro(d.profit)}</span>
+<div class="muted">${esc(d.category)} · Einkauf ${euro(d.buy)} · Verkauf ${euro(d.sell)} · Marge ${d.margin.toFixed(1)}%</div>
 ${d.url?`<a href="${esc(d.url)}" target="_blank" rel="noopener">Angebot öffnen</a>`:""}
 <div class="actions"><button class="danger" onclick="removeDeal(${i})">Löschen</button></div></div>`).join(""):'<p class="muted">Noch keine Deals gespeichert.</p>';
 }
