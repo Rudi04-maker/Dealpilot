@@ -5,7 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#07130e">
-<title>DealPilot</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+
+  <title>DealPilot</title>
 <style>
 :root{color-scheme:dark;--bg:#07130e;--panel:#102219;--green:#25d477;--muted:#9aafa3}
 *{box-sizing:border-box}
@@ -134,6 +137,15 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",
 function exportData(){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.href=u;a.download="dealpilot-backup.json";a.click();URL.revokeObjectURL(u)}
 function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.deals)||typeof d.capital!=="number")throw Error();data=d;persist();alert("Backup erfolgreich importiert.")}catch{alert("Diese Backup-Datei ist ungültig.")}};r.readAsText(f);e.target.value=""}
 render();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .catch(error => console.error("Offline-Modus:", error));
+  });
+}
 </script>
 </body>
 </html>
