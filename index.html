@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07130e">
+<title>DealPilot</title>
+<style>
+:root{color-scheme:dark;--bg:#07130e;--panel:#102219;--green:#25d477;--muted:#9aafa3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f2fff6;font-family:Arial,sans-serif}
+header{padding:22px 18px;background:#0d2016;border-bottom:1px solid #244633}
+h1{margin:0;color:var(--green);font-size:27px}
+header p{margin:6px 0 0;color:var(--muted)}
+main{max-width:700px;margin:auto;padding:16px}
+.card{background:var(--panel);border:1px solid #244633;border-radius:15px;padding:16px;margin-bottom:15px}
+h2{font-size:18px;margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#0a1911;padding:13px;border-radius:10px}
+.stat small{display:block;color:var(--muted);margin-bottom:7px}
+.stat strong{font-size:21px;color:var(--green)}
+label{display:block;font-size:13px;color:#bdd0c3;margin:12px 0 5px}
+input,select{width:100%;padding:12px;border-radius:9px;border:1px solid #365744;background:#07150e;color:white;font-size:16px}
+button{border:0;border-radius:9px;padding:12px 15px;background:var(--green);color:#062012;font-weight:bold;font-size:15px;cursor:pointer}
+button.secondary{background:#294536;color:white}
+button.danger{background:#693333;color:white}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.result{padding:15px;border-radius:10px;background:#09170f;margin-top:14px}
+.result strong{font-size:25px}
+.green{color:#36e58a}.yellow{color:#ffd15b}.red{color:#ff7777}
+.deal{border-top:1px solid #31513d;padding:12px 0}
+.deal:first-child{border:0}
+.muted{color:var(--muted);font-size:13px}
+a{color:#65e6a0;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header>
+<h1>◆ DealPilot</h1>
+<p>Dein persönlicher Reselling-Assistent</p>
+</header>
+<main>
+<section class="card">
+<h2>💰 Dein Kapital</h2>
+<div class="stats">
+<div class="stat"><small>Startkapital</small><strong id="startView">50,00 €</strong></div>
+<div class="stat"><small>Verfügbar</small><strong id="available">50,00 €</strong></div>
+<div class="stat"><small>Investiert</small><strong id="invested">0,00 €</strong></div>
+<div class="stat"><small>Gespeicherte Deals</small><strong id="count">0</strong></div>
+</div>
+<label>Startkapital ändern (€)</label>
+<input id="capital" type="number" min="0" step=".01" value="50">
+<button class="secondary" onclick="saveCapital()">Kapital speichern</button>
+</section>
+
+<section class="card">
+<h2>🔎 Deal kalkulieren</h2>
+<label>Produkt / Beschreibung</label>
+<input id="name" placeholder="z. B. Sneaker, Jacke, Konsole">
+<label>Kategorie</label>
+<select id="category">
+<option>Kleidung</option><option>Schuhe</option><option>Elektronik</option>
+<option>Gaming</option><option>Möbel</option><option>Spielzeug</option>
+<option>Sport</option><option>Bücher</option><option>Sammlerstücke</option>
+<option>Haushalt</option><option>Sonstiges</option>
+</select>
+<label>Einkaufspreis (€)</label>
+<input id="buy" type="number" min="0" step=".01" placeholder="0,00">
+<label>Geplanter Verkaufspreis (€)</label>
+<input id="sell" type="number" min="0" step=".01" placeholder="0,00">
+<label>Gebühren (€)</label>
+<input id="fees" type="number" min="0" step=".01" value="0">
+<label>Versand / Sonstige Kosten (€)</label>
+<input id="shipping" type="number" min="0" step=".01" value="0">
+<label>Angebotslink (optional)</label>
+<input id="url" type="url" placeholder="https://...">
+<div class="actions">
+<button onclick="calculate()">Gewinn berechnen</button>
+<button class="secondary" onclick="clearForm()">Leeren</button>
+</div>
+<div id="result" class="result" hidden></div>
+<div class="actions" id="saveArea" hidden>
+<button onclick="saveDeal()">Deal speichern</button>
+</div>
+</section>
+
+<section class="card">
+<h2>📦 Deine gespeicherten Deals</h2>
+<div id="deals"><p class="muted">Noch keine Deals gespeichert.</p></div>
+<div class="actions">
+<button class="secondary" onclick="exportData()">Backup exportieren</button>
+<button class="secondary" onclick="document.getElementById('importFile').click()">Backup importieren</button>
+<input id="importFile" type="file" accept=".json,application/json" hidden onchange="importData(event)">
+</div>
+<p class="muted">Deine Daten bleiben lokal auf diesem Gerät.</p>
+</section>
+</main>
+<script>
+const €=n=>Number(n).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+let data=JSON.parse(localStorage.getItem("dealpilot-data")||'{"capital":50,"deals":[]}');
+let current=null;
+function persist(){localStorage.setItem("dealpilot-data",JSON.stringify(data));render()}
+function num(id){return Math.max(0,Number(document.getElementById(id).value)||0)}
+function render(){
+let invested=data.deals.reduce((s,d)=>s+d.buy,0);
+document.getElementById("capital").value=data.capital;
+document.getElementById("startView").textContent=€(data.capital);
+document.getElementById("invested").textContent=€(invested);
+document.getElementById("available").textContent=€(data.capital-invested);
+document.getElementById("count").textContent=data.deals.length;
+document.getElementById("deals").innerHTML=data.deals.length?data.deals.map((d,i)=>`
+<div class="deal"><b>${esc(d.name)}</b> <span class="${d.profit>=10&&d.margin>=30?'green':d.profit>=5?'yellow':'red'}">● ${€(d.profit)}</span>
+<div class="muted">${esc(d.category)} · Einkauf ${€(d.buy)} · Verkauf ${€(d.sell)} · Marge ${d.margin.toFixed(1)}%</div>
+${d.url?`<a href="${esc(d.url)}" target="_blank" rel="noopener">Angebot öffnen</a>`:""}
+<div class="actions"><button class="danger" onclick="removeDeal(${i})">Löschen</button></div></div>`).join(""):'<p class="muted">Noch keine Deals gespeichert.</p>';
+}
+function saveCapital(){data.capital=num("capital");persist()}
+function calculate(){
+let buy=num("buy"),sell=num("sell"),cost=buy+num("fees")+num("shipping");
+let profit=sell-cost,margin=cost>0?profit/cost*100:0;
+let status=profit>=10&&margin>=30?"green":profit>=5?"yellow":"red";
+let label=status==="green"?"GRÜN – guter Deal":status==="yellow"?"GELB – knapp kalkuliert":"ROT – lohnt sich eher nicht";
+current={name:document.getElementById("name").value.trim()||"Unbenannter Deal",category:document.getElementById("category").value,buy,sell,fees:num("fees"),shipping:num("shipping"),url:document.getElementById("url").value.trim(),profit,margin};
+let warning=buy>data.capital-data.deals.reduce((s,d)=>s+d.buy,0)?"<p class='red'>Achtung: Dieser Einkauf übersteigt dein verfügbares Kapital!</p>":"";
+document.getElementById("result").hidden=false;
+document.getElementById("result").innerHTML=`<h2 class="${status}">${label}</h2><strong class="${status}">${€(profit)}</strong><p>Erwarteter Gewinn</p><p>Marge: ${margin.toFixed(1)}%</p><p>Gesamtkosten: ${€(cost)}</p>${warning}`;
+document.getElementById("saveArea").hidden=false;
+}
+function saveDeal(){if(!current)return;if(current.buy>data.capital-data.deals.reduce((s,d)=>s+d.buy,0)&&!confirm("Der Deal überschreitet dein verfügbares Kapital. Trotzdem speichern?"))return;data.deals.push(current);persist();clearForm()}
+function removeDeal(i){if(confirm("Deal wirklich löschen?")){data.deals.splice(i,1);persist()}}
+function clearForm(){["name","buy","sell","url"].forEach(id=>document.getElementById(id).value="");document.getElementById("fees").value=0;document.getElementById("shipping").value=0;document.getElementById("result").hidden=true;document.getElementById("saveArea").hidden=true;current=null}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function exportData(){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.href=u;a.download="dealpilot-backup.json";a.click();URL.revokeObjectURL(u)}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.deals)||typeof d.capital!=="number")throw Error();data=d;persist();alert("Backup erfolgreich importiert.")}catch{alert("Diese Backup-Datei ist ungültig.")}};r.readAsText(f);e.target.value=""}
+render();
+</script>
+</body>
+</html>
