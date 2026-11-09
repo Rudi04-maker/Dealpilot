@@ -1,0 +1,20 @@
+
+{
+  "name": "DealPilot – Reselling Assistent",
+  "short_name": "DealPilot",
+  "description": "Dein persönlicher Reselling-Assistent",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07130e",
+  "theme_color": "#07130e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
